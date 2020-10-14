@@ -1,0 +1,50 @@
+version: '3.7'
+
+x-logging:
+  &default-logging
+  options:
+    max-size: '10m'
+    max-file: '5'
+  driver: json-file
+
+services:
+  autossh:
+    container_name: autossh
+    environment:
+      - SSH_REMOTE_USER=
+      - SSH_REMOTE_HOST=
+      - SSH_TUNNEL_PORT=
+      - SSH_TARGET_HOST=
+      - SSH_TARGET_PORT=
+    image: jnovack/autossh:2.0.0-rc4
+    network_mode: host
+    restart: always
+    volumes:
+      - /home/pi/.ssh/id_rsa:/id_rsa:ro
+
+
+  hxfer:
+    build:
+      context: ./
+      dockerfile: Dockerfile.arm32v7
+    container_name: hxfer
+    environment:
+      - AWS_ACCESS_KEY_ID=
+      - AWS_SECRET_ACCESS_KEY=
+      - AWS_DEFAULT_REGION=
+      - HOBS_MQTT_HOST=
+      - HOBS_MQTT_PORT=
+      - HOBS_CA_CERTS=cert/tl_root_ca.crt
+      - HOBS_CERTFILE=cert/labs.crt
+      - HOBS_KEYFILE=cert/labs.key
+      - HOBS_BLE_FILTER=5c:f2:86
+      - HOBS_BLE_SCAN_TIMEOUT=3.0
+      # - LOGURU_LEVEL=INFO
+    image: 
+    network_mode: host
+    privileged: true
+    restart: unless-stopped
+
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
